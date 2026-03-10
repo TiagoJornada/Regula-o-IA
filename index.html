@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Validação de Justificativas</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f5f7fb;
+margin:0;
+padding:20px;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:12px;
+margin-bottom:15px;
+border:1px solid #dbe3ef;
+}
+
+button{
+padding:10px 15px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.concordo{
+background:#16a34a;
+color:white;
+}
+
+.discordo{
+background:#dc2626;
+color:white;
+}
+
+textarea{
+width:100%;
+margin-top:10px;
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+.enviar{
+background:#2563eb;
+color:white;
+font-size:18px;
+padding:14px 30px;
+margin-top:20px;
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h1>Validação de Justificativas de Exames de Imagem</h1>
+
+<p>
+Leia a justificativa clínica e avalie se concorda ou discorda da classificação feita pela IA.
+</p>
+
+<div id="lista"></div>
+
+<button class="enviar" onclick="enviar()">Enviar avaliações</button>
+
+</div>
+
+
+<script>
+
+const WEB_APP_URL =
+"https://script.google.com/macros/s/AKfycbwSLN0RalB3Ng7MLXzFDSfWYHDYx9Dnd-uMnrdClfLrZYIO3zj4PM9OPV2Ooo0R-KMW/exec";
+
+
+const exames = [
+
+/* ------------------------------------------------
+COLE AQUI OS EXAMES DA SUA PLANILHA
+------------------------------------------------ */
+
+{
+id:1,
+modalidade:"TC",
+exame:"Tomografia de crânio",
+justificativa:"Cefaleia súbita",
+classificacaoIA:"Adequada"
+},
+
+{
+id:2,
+modalidade:"RX",
+exame:"Raio X tórax",
+justificativa:"Dispneia",
+classificacaoIA:"Adequada"
+}
+
+/* coloque todos os outros aqui */
+
+];
+
+
+const respostas={}
+
+function render(){
+
+const lista=document.getElementById("lista")
+
+lista.innerHTML=""
+
+exames.forEach(ex=>{
+
+const card=document.createElement("div")
+card.className="card"
+
+card.innerHTML=`
+
+<strong>ID:</strong> ${ex.id}<br>
+<strong>Modalidade:</strong> ${ex.modalidade}<br>
+<strong>Exame:</strong> ${ex.exame}<br>
+<strong>Justificativa:</strong> ${ex.justificativa}<br>
+<strong>Classificação IA:</strong> ${ex.classificacaoIA}
+
+<br><br>
+
+<button class="concordo" onclick="responder(${ex.id},'Concordo')">
+Concordo
+</button>
+
+<button class="discordo" onclick="responder(${ex.id},'Discordo')">
+Discordo
+</button>
+
+<textarea placeholder="Comentário opcional" id="coment${ex.id}"></textarea>
+
+`
+
+lista.appendChild(card)
+
+})
+
+}
+
+function responder(id,resposta){
+
+respostas[id]=resposta
+
+alert("Resposta registrada")
+
+}
+
+async function enviar(){
+
+const payload=[]
+
+exames.forEach(ex=>{
+
+payload.push({
+
+id:ex.id,
+modalidade:ex.modalidade,
+exame:ex.exame,
+justificativa:ex.justificativa,
+classificacao_ia:ex.classificacaoIA,
+resposta:respostas[ex.id]||"",
+comentario:document.getElementById("coment"+ex.id).value
+
+})
+
+})
+
+await fetch(WEB_APP_URL,{
+method:"POST",
+headers:{
+"Content-Type":"text/plain;charset=utf-8"
+},
+body:JSON.stringify({respostas:payload})
+})
+
+alert("Avaliações enviadas com sucesso")
+
+}
+
+render()
+
+</script>
+
+</body>
+</html>
